@@ -1,48 +1,66 @@
-/* eslint-disable*/
-import React, { useState, useEffect } from 'react'
-import { CRow, CCol, CCard, CCardHeader, CCardBody, CButton, CDataTable } from '@coreui/react'
-import { CIcon } from '@coreui/icons-react'
-import useApi from '../services/api'
+import React, { useEffect, useState } from 'react'
+import {
+  CButton,
+  CButtonGroup,
+  CCard,
+  CCardBody,
+  CCardHeader,
+  CCol,
+  CRow,
+  CTable,
+} from '@coreui/react'
+import api from '../services/api'
+import { cilCheck } from '@coreui/icons'
+import CIcon from '@coreui/icons-react'
 
-export default () => {
-  const api = useApi()
+const Wall = () => {
+  let [list, setList] = useState([])
 
-  const [loading, setLoading] = useState(true)
-  const [list, setList] = useState([])
+  useEffect(() => {
+    const req = async () => {
+      let json = await api.getWall()
+      if (json.error === '') {
+        setList(
+          json.list.map((i) => ({
+            ...i,
+            actions: (
+              <CButtonGroup>
+                <CButton color="info">Editar</CButton>
+                <CButton color="danger">Excluir</CButton>
+              </CButtonGroup>
+            ),
+          })),
+        )
+      } else {
+        alert(json.error)
+      }
+    }
+    req()
+  }, [])
 
   const fields = [
     { label: 'Título', key: 'title' },
-    { label: 'Data de criação', key: 'datecreated' },
-    { label: 'Ações', key: 'actions' },
+    { label: 'Data de criação', key: 'datecreated', _style: { width: '200px' } },
+    { label: 'Ações', key: 'actions', _style: { width: '1px' } },
   ]
-
-  useEffect(() => {
-    getList()
-  }, [])
-
-  const getList = async (async) => {
-    setLoading(true)
-    const result = await api.getWall()
-    setLoading(false)
-    if (result.error === '') {
-      setList(result.list)
-    } else {
-      alert(result.error)
-    }
-  }
 
   return (
     <CRow>
       <CCol>
-        <h2>Mural de Aviso 📢</h2>
-
+        <h2>Mural de Avisos</h2>
         <CCard>
           <CCardHeader>
-            <CButton color="primary">Novo aviso</CButton>
+            <CButton color="primary">
+              <CIcon icon={cilCheck} /> Novo Aviso
+            </CButton>
           </CCardHeader>
-          <CCardBody></CCardBody>
+          <CCardBody>
+            <CTable items={list} columns={fields} striped hover bord />
+          </CCardBody>
         </CCard>
       </CCol>
     </CRow>
   )
 }
+
+export default Wall
